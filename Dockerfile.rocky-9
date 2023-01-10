@@ -14,7 +14,11 @@ RUN sed -i 's!%_install_langs.*!%_install_langs all!' /etc/rpm/macros.image-lang
 	find /etc/yum.repos.d/ -type f -name "*.repo" -exec sed -i.bak "s/#baseurl=http:\/\/dl.rockylinux.org\/\$contentdir/baseurl=https:\/\/mirror.yandex.ru\/rockylinux/" {} \;
 
 RUN yum -y install --setopt=install_weak_deps=False ipa-server ipa-server-dns ipa-server-trust-ad patch && yum clean all
-RUN find /etc/sysconfig/ -type f -name "chronyd" -exec sed -i "s/OPTIONS=\"/OPTIONS=\"-x /" {} \;
+
+# Tune Chrony configuration
+RUN find /etc/sysconfig -type f -name "chronyd" -exec sed -i "s/OPTIONS=\"/OPTIONS=\"-x /" {} \; && \
+    find /etc -type f -name "chrony.conf" -exec sed -i "s/#local stratum 10/local stratum 10/" {} \; && \
+    find /etc -type f -name "chrony.conf" -exec sed -i "s/#allow 192.168.0.0\/16/allow 172.17.0.0\/16/" {} \;
 
 # debug: RUN test $( getent passwd | grep -E "^(dirsrv:x:389|ipaapi:x:289|kdcproxy:x:288|pkiuser:x:17):" | wc -l ) -eq 4
 
